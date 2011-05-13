@@ -79,10 +79,10 @@ void netpnm_load_ascii(FILE* stream, netpnm* img)
 {
     char buffer[3];
     printf("img total size: %d\n",img->width * img->height);
-    for(int i = 0; i < (img->width * img->height); ++i)
+    for(uint32_t i = 0; i < (img->width * img->height); ++i)
     {
         fscanf(stream,"%3s",buffer);
-        printf("read idx %d: \"%3c\"\n",i,buffer);
+        printf("read idx %d: \"%3s\"\n",i,buffer);
     }
 }
 
@@ -95,7 +95,7 @@ netpnm* netpnm_open(const char* filename)
     if(NULL == (pnm = fopen(filename,"r")))
         return fprint_err(stderr, NULL,
                 "Error opening %s: %s\n",filename,strerror(errno));
-    if(EOF == fscanf(pnm,"P%1d\n",&type))
+    if(EOF == fscanf(pnm,"P%1hhd\n",&type))
         return print_err(NULL,"Invalid PNM Header\n");
 
     scan_next_line(pnm,"%d %d",&width,&height);
@@ -103,7 +103,7 @@ netpnm* netpnm_open(const char* filename)
     netpnm* image = netpnm_size_new(width,height,type);
     printf("Type: P%d, width=%d, height=%d\n",type,width,height);
 
-    netpnm_load_ascii(pnm, image);
+    //netpnm_load_ascii(pnm, image);
 
     return NULL;
 }
