@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "utils.h"
 
 void* fprint_err(FILE* dest, void* rval, const char* fmt, ...)
 {
