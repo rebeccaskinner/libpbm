@@ -17,6 +17,7 @@
 #define PNM_COLOR  (0x03)
 #define PNM_BINARY (0x04)
 #define PNM_ASCII  (0x00)
+#define PNM_GET_CHARS_PER_PX_CHANNEL(x) ((x|1) & 0x3)
 
 typedef struct
 {
@@ -28,7 +29,7 @@ typedef struct
 
 static int skip_comments(FILE* stream)
 {
-    int skip_count = 0;
+    int skip_count = 1;
     char buffer[2] = {0};
     fread(buffer,1,sizeof(char),stream);
     while('#' == buffer[0])
@@ -63,6 +64,7 @@ netpnm* netpnm_new(uint8_t flags)
     i->height = 0;
     i->data   = 0;
     i->flags  = flags;
+    return i;
 }
 
 netpnm* netpnm_size_new(uint32_t width, uint32_t height, uint8_t flags)
@@ -77,13 +79,15 @@ netpnm* netpnm_size_new(uint32_t width, uint32_t height, uint8_t flags)
 
 void netpnm_load_ascii(FILE* stream, netpnm* img)
 {
-    char buffer[3];
-    printf("img total size: %d\n",img->width * img->height);
+    const int cnt = PNM_GET_CHARS_PER_PX_CHANNEL(img->flags);
+    char buffer[cnt];
     for(uint32_t i = 0; i < (img->width * img->height); ++i)
     {
-        fscanf(stream,"%3s",buffer);
-        printf("read idx %d: \"%3s\"\n",i,buffer);
+	fread(buffer,sizeof(char),sizeof(buffer),stream);
+	printf("read: \"%*s\"\n",cnt,buffer);
     }
+    //printf("img total size: %d\n",img->width * img->height);
+    //printf("%d chars/pixel\n",PNM_GET_CHARS_PER_PX_CHANNEL(img->flags));
 }
 
 netpnm* netpnm_open(const char* filename)
@@ -98,12 +102,13 @@ netpnm* netpnm_open(const char* filename)
     if(EOF == fscanf(pnm,"P%1hhd\n",&type))
         return print_err(NULL,"Invalid PNM Header\n");
 
-    scan_next_line(pnm,"%d %d",&width,&height);
+    scan_next_line(pnm,"%d%d",&width,&height);
 
     netpnm* image = netpnm_size_new(width,height,type);
-    printf("Type: P%d, width=%d, height=%d\n",type,width,height);
 
-    //netpnm_load_ascii(pnm, image);
+    netpnm_load_ascii(pnm, image);
+
+    printf("Type: P%d, width=%d, height=%d\n",type,width,height);
 
     return NULL;
 }
