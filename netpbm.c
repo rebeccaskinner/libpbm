@@ -77,17 +77,39 @@ netpnm* netpnm_size_new(uint32_t width, uint32_t height, uint8_t flags)
     return i;
 }
 
+size_t read_ascii_val(size_t count, byte* buffer, FILE* stream)
+{
+    size_t read_cnt = 0;
+    while(read_cnt < count)
+    {
+        if(!fread(buffer,sizeof(byte),1,stream))
+            return read_cnt;
+        if(*buffer < '0' || *buffer > '9')
+            continue;
+        ++buffer;
+        ++read_cnt;
+    }
+    return read_cnt;
+}
+
 void netpnm_load_ascii(FILE* stream, netpnm* img)
 {
     const int cnt = PNM_GET_CHARS_PER_PX_CHANNEL(img->flags);
     char buffer[cnt];
     for(uint32_t i = 0; i < (img->width * img->height); ++i)
     {
-	fread(buffer,sizeof(char),sizeof(buffer),stream);
+        read_ascii_val(cnt,(byte*)buffer,stream);
 	printf("read: \"%*s\"\n",cnt,buffer);
+        img->data[i] = atoi(buffer);
     }
-    //printf("img total size: %d\n",img->width * img->height);
-    //printf("%d chars/pixel\n",PNM_GET_CHARS_PER_PX_CHANNEL(img->flags));
+}
+
+int netpnm_write_ascii(FILE* stream, netpnm* img)
+{
+    const int cnt = PNM_GET_CHARS_PER_PX_CHANNEL(img->flags);
+    for(uint32_t i = 0; i < (img_width * img->height); ++i)
+    {
+    }
 }
 
 netpnm* netpnm_open(const char* filename)
@@ -103,13 +125,8 @@ netpnm* netpnm_open(const char* filename)
         return print_err(NULL,"Invalid PNM Header\n");
 
     scan_next_line(pnm,"%d%d",&width,&height);
-
     netpnm* image = netpnm_size_new(width,height,type);
-
     netpnm_load_ascii(pnm, image);
-
-    printf("Type: P%d, width=%d, height=%d\n",type,width,height);
-
     return NULL;
 }
 

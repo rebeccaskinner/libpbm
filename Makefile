@@ -3,7 +3,8 @@ CC     := gcc
 CFLAGS := -std=gnu99
 CFLAGS += -O0
 CFLAGS += -g -ggdb
-CFLAGS += -Wall -Wextra -Werror
+CFLAGS += -Wall -Wextra -Werror -Wno-unused
+CFLAGS += -DSELF_TEST
 
 LFLAGS := 
 
